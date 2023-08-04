@@ -1,0 +1,31 @@
+name: Build and push docker image
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - server/**
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push docker image
+        id: docker-build-push
+        uses: docker/build-push-action@v4
+        with:
+          context: server/
+          file: server/Dockerfile
+          push: true
+          tags: ghcr.io/mike8699/ghidra-server:0.0.1
