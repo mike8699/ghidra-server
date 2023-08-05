@@ -1,0 +1,29 @@
+#cloud-config
+sudo: ['ALL=(ALL) NOPASSWD:ALL']
+groups: sudo
+shell: /bin/bash
+write_files:
+- path: /etc/systemd/system/ghidraserver.service
+  permissions: '0644'
+  owner: root
+  content: |
+    [Unit]
+    Description=ghidra server
+    Requires=docker.socket
+    After=docker.service
+
+    [Service]
+    Restart=always
+    ExecStart=/usr/bin/docker run -e GHIDRA_USERS="mike" -v /repos:/repos -p 13100-13102:13100-13102 ghcr.io/mike8699/ghidra-server:0.0.1
+    ExecStop=/usr/bin/docker stop $(docker ps -a -q) 
+
+    [Install]
+    WantedBy=multi-user.target
+runcmd:
+  - mkdir -p /repos
+  - echo "Opening ports for Ghidra..."
+  - ufw allow 13100 && ufw allow 13101 && ufw allow 13102
+  - echo "Done."
+  - echo "Starting Ghidra server..."
+  - service ghidraserver start
+  - echo "Done."
